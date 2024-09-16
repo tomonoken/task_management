@@ -5,101 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>タスク管理ページ</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f7f7f7;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-        }
-
-        .task-list {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .task {
-            padding: 10px 0;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .task:last-child {
-            border-bottom: none;
-        }
-
-        .task h3 {
-            margin: 0 0 5px;
-            color: #333;
-            cursor: pointer;
-        }
-
-        .task p {
-            margin: 5px 0;
-            color: #666;
-        }
-
-        .priority {
-            color: #c0392b;
-        }
-
-        button {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #c0392b;
-        }
-
-        form {
-            margin-bottom: 20px;
-        }
-
-        label {
-            margin-right: 10px;
-        }
-
-        input, select, button {
-            margin: 5px;
-            padding: 8px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-        }
-
-        button[type="submit"] {
-            background-color: #27ae60;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        button[type="submit"]:hover {
-            background-color: #219150;
-        }
-
-        @media screen and (max-width: 768px) {
-            .task-list {
-                padding: 10px;
-            }
-
-            .task {
-                padding: 5px 0;
-            }
-        }
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
+        h1 { text-align: center; color: #333; }
+        .task-list { max-width: 800px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .task { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
+        .task:last-child { border-bottom: none; }
+        .task h3 { margin: 0 0 5px; color: #333; cursor: pointer; }
+        .task p { margin: 5px 0; color: #666; }
+        .priority { color: #c0392b; }
+        button { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #c0392b; }
+        form { margin-bottom: 20px; }
+        label { margin-right: 10px; }
+        input, select, button { margin: 5px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; }
+        button[type="submit"] { background-color: #27ae60; color: white; border: none; cursor: pointer; }
+        button[type="submit"]:hover { background-color: #219150; }
+        @media screen and (max-width: 768px) { .task-list { padding: 10px; } .task { padding: 5px 0; } }
     </style>
 </head>
 <body>
@@ -129,7 +50,6 @@
     <form id="task-form">
         <label for="task-name">タスク名:</label>
         <input type="text" id="task-name" placeholder="タスク名" required>
-
         <label for="task-owner">担当者:</label>
         <select id="task-owner" required>
             <option value="福山">福山</option>
@@ -139,17 +59,14 @@
             <option value="祁内">祁内</option>
             <option value="友野">友野</option>
         </select>
-
         <label for="task-deadline">〆切:</label>
         <input type="date" id="task-deadline" required>
-
         <label for="task-priority">優先度:</label>
         <select id="task-priority">
             <option value="高">高</option>
             <option value="中">中</option>
             <option value="低">低</option>
         </select>
-        
         <button type="submit">タスクを追加</button>
     </form>
 
@@ -185,7 +102,7 @@
             document.getElementById('task-owner').value = task.owner;
             document.getElementById('task-deadline').value = task.deadline;
             document.getElementById('task-priority').value = task.priority;
-            deleteTask(index); // 一度削除してから再追加
+            deleteTask(index);
         }
 
         // タスクをフィルタリングして表示
@@ -197,14 +114,12 @@
             const filterPriority = document.getElementById('filter-priority').value;
 
             tasks.forEach((task, index) => {
-                if ((filterOwner && task.owner !== filterOwner) ||
-                    (filterPriority && task.priority !== filterPriority)) {
+                if ((filterOwner && task.owner !== filterOwner) || (filterPriority && task.priority !== filterPriority)) {
                     return;
                 }
 
                 const taskElement = document.createElement('div');
                 taskElement.classList.add('task');
-
                 taskElement.innerHTML = `
                     <div>
                         <h3 onclick="editTask(${index})">${task.name}</h3>
@@ -218,7 +133,6 @@
                 `;
                 
                 taskList.appendChild(taskElement);
-
                 checkReminder(task.deadline, task.name);
             });
         }
@@ -227,8 +141,7 @@
         function checkReminder(deadline, taskName) {
             const deadlineDate = new Date(deadline);
             const currentDate = new Date();
-            const diffTime = deadlineDate - currentDate;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffDays = Math.ceil((deadlineDate - currentDate) / (1000 * 60 * 60 * 24));
 
             if (diffDays === 1) {
                 alert(`タスク「${taskName}」の〆切が明日です！`);
@@ -252,17 +165,10 @@
                 name: taskName,
                 owner: taskOwner,
                 deadline: taskDeadline,
-                priority
-                const newTask = {
-                name: taskName,
-                owner: taskOwner,
-                deadline: taskDeadline,
                 priority: taskPriority
             };
 
             addTask(newTask);
-
-            // フォームをリセット
             document.getElementById('task-form').reset();
         });
 
