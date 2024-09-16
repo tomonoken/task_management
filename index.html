@@ -8,7 +8,7 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
         h1 { text-align: center; color: #333; }
         .task-list { max-width: 800px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .task { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
+        .task { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; cursor: move; }
         .task:last-child { border-bottom: none; }
         .task h3 { margin: 0 0 5px; color: #333; cursor: pointer; }
         .task p { margin: 5px 0; color: #666; }
@@ -76,26 +76,24 @@
 
     <script>
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+        let draggedTaskIndex = null;
 
         function saveTasks() {
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
-        // タスクを追加する関数
         function addTask(task) {
             tasks.push(task);
             saveTasks();
             renderTasks();
         }
 
-        // タスクを削除する関数
         function deleteTask(index) {
             tasks.splice(index, 1);
             saveTasks();
             renderTasks();
         }
 
-        // タスクを編集する関数
         function editTask(index) {
             const task = tasks[index];
             document.getElementById('task-name').value = task.name;
@@ -105,21 +103,23 @@
             deleteTask(index);
         }
 
-        // タスクをフィルタリングして表示
         function renderTasks() {
             const taskList = document.getElementById('task-list');
-            taskList.innerHTML = ''; // リストをクリア
+            taskList.innerHTML = '';
 
             const filterOwner = document.getElementById('filter-owner').value;
             const filterPriority = document.getElementById('filter-priority').value;
 
             tasks.forEach((task, index) => {
-                if ((filterOwner && task.owner !== filterOwner) || (filterPriority && task.priority !== filterPriority)) {
-                    return;
-                }
+                if ((filterOwner && task.owner !== filterOwner) || (filterPriority && task.priority !== filterPriority)) return;
 
                 const taskElement = document.createElement('div');
                 taskElement.classList.add('task');
+                taskElement.setAttribute('draggable', true);
+                taskElement.addEventListener('dragstart', () => { draggedTaskIndex = index; });
+                taskElement.addEventListener('dragover', (event) => { event.preventDefault(); });
+                taskElement.addEventListener('drop', () => { moveTask(draggedTaskIndex, index); });
+
                 taskElement.innerHTML = `
                     <div>
                         <h3 onclick="editTask(${index})">${task.name}</h3>
@@ -131,48 +131,32 @@
                         <button onclick="deleteTask(${index})">削除</button>
                     </div>
                 `;
-                
+
                 taskList.appendChild(taskElement);
-                checkReminder(task.deadline, task.name);
             });
         }
 
-        // 〆切が近づいた場合のリマインダー
-        function checkReminder(deadline, taskName) {
-            const deadlineDate = new Date(deadline);
-            const currentDate = new Date();
-            const diffDays = Math.ceil((deadlineDate - currentDate) / (1000 * 60 * 60 * 24));
-
-            if (diffDays === 1) {
-                alert(`タスク「${taskName}」の〆切が明日です！`);
-            }
+        function moveTask(fromIndex, toIndex) {
+            const task = tasks.splice(fromIndex, 1)[0];
+            tasks.splice(toIndex, 0, task);
+            saveTasks();
+            renderTasks();
         }
 
-        // フィルターが変更されたときに再描画
         document.getElementById('filter-owner').addEventListener('change', renderTasks);
         document.getElementById('filter-priority').addEventListener('change', renderTasks);
 
-        // フォームが送信されたときにタスクを追加する処理
         document.getElementById('task-form').addEventListener('submit', function(event) {
             event.preventDefault();
-
             const taskName = document.getElementById('task-name').value;
             const taskOwner = document.getElementById('task-owner').value;
             const taskDeadline = document.getElementById('task-deadline').value;
             const taskPriority = document.getElementById('task-priority').value;
-
-            const newTask = {
-                name: taskName,
-                owner: taskOwner,
-                deadline: taskDeadline,
-                priority: taskPriority
-            };
-
+            const newTask = { name: taskName, owner: taskOwner, deadline: taskDeadline, priority: taskPriority };
             addTask(newTask);
             document.getElementById('task-form').reset();
         });
 
-        // ページを読み込んだ時にタスクを表示
         window.onload = function() {
             renderTasks();
         };
