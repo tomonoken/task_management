@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>タスク管理ページ</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f7f7f7;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .task-list {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .task {
+            padding: 10px 0;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .task:last-child {
+            border-bottom: none;
+        }
+
+        .task h3 {
+            margin: 0 0 5px;
+            color: #333;
+        }
+
+        .task p {
+            margin: 5px 0;
+            color: #666;
+        }
+
+        .priority {
+            color: #c0392b;
+        }
+
+        button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #c0392b;
+        }
+
+        form {
+            margin-bottom: 20px;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        input, select, button {
+            margin: 5px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button[type="submit"] {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #219150;
+        }
+
+        @media screen and (max-width: 768px) {
+            .task-list {
+                padding: 10px;
+            }
+
+            .task {
+                padding: 5px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>タスク管理</h1>
+
+    <!-- タスクを追加するフォーム -->
+    <form id="task-form">
+        <label for="task-name">タスク名:</label>
+        <input type="text" id="task-name" placeholder="タスク名" required>
+
+        <label for="task-owner">担当者:</label>
+        <!-- 担当者選択のドロップダウンメニュー -->
+        <select id="task-owner" required>
+            <option value="福山">福山</option>
+            <option value="西村">西村</option>
+            <option value="吉村">吉村</option>
+            <option value="今井">今井</option>
+            <option value="祁内">祁内</option>
+            <option value="友野">友野</option>
+        </select>
+
+        <!-- 〆切 (期限) の項目 -->
+        <label for="task-deadline">〆切:</label>
+        <input type="date" id="task-deadline" required>
+
+        <label for="task-priority">優先度:</label>
+        <select id="task-priority">
+            <option value="高">高</option>
+            <option value="中">中</option>
+            <option value="低">低</option>
+        </select>
+        
+        <button type="submit">タスクを追加</button>
+    </form>
+
+    <div class="task-list" id="task-list">
+        <!-- ここにタスクが追加されます -->
+    </div>
+
+    <script>
+        // タスクリストを保持する配列
+        let tasks = [];
+
+        // タスクを追加する関数
+        function addTask(task) {
+            tasks.push(task);
+            renderTasks();
+        }
+
+        // タスクを削除する関数
+        function deleteTask(index) {
+            tasks.splice(index, 1);
+            renderTasks();
+        }
+
+        // タスクを表示する関数
+        function renderTasks() {
+            const taskList = document.getElementById('task-list');
+            taskList.innerHTML = ''; // リストをクリア
+
+            tasks.forEach((task, index) => {
+                const taskElement = document.createElement('div');
+                taskElement.classList.add('task');
+
+                taskElement.innerHTML = `
+                    <div>
+                        <h3>${task.name}</h3>
+                        <p>担当者: ${task.owner}</p>
+                        <p>〆切: ${task.deadline}</p>
+                        <p>優先度: <span class="priority">${task.priority}</span></p>
+                    </div>
+                    <div>
+                        <button onclick="deleteTask(${index})">削除</button>
+                    </div>
+                `;
+                
+                taskList.appendChild(taskElement);
+            });
+        }
+
+        // フォームが送信されたときにタスクを追加する処理
+        document.getElementById('task-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const taskName = document.getElementById('task-name').value;
+            const taskOwner = document.getElementById('task-owner').value;
+            const taskDeadline = document.getElementById('task-deadline').value;
+            const taskPriority = document.getElementById('task-priority').value;
+
+            const newTask = {
+                name: taskName,
+                owner: taskOwner,
+                deadline: taskDeadline,
+                priority: taskPriority
+            };
+
+            addTask(newTask);
+
+            // フォームをリセット
+            document.getElementById('task-form').reset();
+        });
+    </script>
+</body>
+</html>
