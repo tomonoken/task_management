@@ -253,3 +253,23 @@
                 owner: taskOwner,
                 deadline: taskDeadline,
                 priority
+                const newTask = {
+                name: taskName,
+                owner: taskOwner,
+                deadline: taskDeadline,
+                priority: taskPriority
+            };
+
+            addTask(newTask);
+
+            // フォームをリセット
+            document.getElementById('task-form').reset();
+        });
+
+        // ページを読み込んだ時にタスクを表示
+        window.onload = function() {
+            renderTasks();
+        };
+    </script>
+</body>
+</html>
