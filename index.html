@@ -98,9 +98,9 @@
             renderTasks();
         }
 
-        // タスクを完了済みにする関数
-        function completeTask(index) {
-            tasks[index].completed = true;
+        // タスクの完了/未完了を切り替える関数
+        function toggleCompleteTask(index) {
+            tasks[index].completed = !tasks[index].completed;
             saveTasks();
             renderTasks();
         }
@@ -130,7 +130,9 @@
                         <p>優先度: <span class="priority">${task.priority}</span></p>
                     </div>
                     <div>
-                        <button class="complete" onclick="completeTask(${index})">完了</button>
+                        <button class="complete" onclick="toggleCompleteTask(${index})">
+                            ${task.completed ? '未完了に戻す' : '完了'}
+                        </button>
                         <button onclick="deleteTask(${index})">削除</button>
                     </div>
                 `;
