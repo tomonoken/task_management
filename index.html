@@ -8,13 +8,16 @@
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f7f7f7; }
         h1 { text-align: center; color: #333; }
         .task-list { max-width: 800px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .task { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; cursor: move; }
+        .task { padding: 10px 0; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; }
         .task:last-child { border-bottom: none; }
         .task h3 { margin: 0 0 5px; color: #333; cursor: pointer; }
         .task p { margin: 5px 0; color: #666; }
+        .completed { background-color: #d3ffd3; }
         .priority { color: #c0392b; }
         button { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         button:hover { background-color: #c0392b; }
+        button.complete { background-color: #27ae60; }
+        button.complete:hover { background-color: #219150; }
         form { margin-bottom: 20px; }
         label { margin-right: 10px; }
         input, select, button { margin: 5px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; }
@@ -76,33 +79,33 @@
 
     <script>
         let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-        let draggedTaskIndex = null;
 
         function saveTasks() {
             localStorage.setItem('tasks', JSON.stringify(tasks));
         }
 
+        // タスクを追加する関数
         function addTask(task) {
             tasks.push(task);
             saveTasks();
             renderTasks();
         }
 
+        // タスクを削除する関数
         function deleteTask(index) {
             tasks.splice(index, 1);
             saveTasks();
             renderTasks();
         }
 
-        function editTask(index) {
-            const task = tasks[index];
-            document.getElementById('task-name').value = task.name;
-            document.getElementById('task-owner').value = task.owner;
-            document.getElementById('task-deadline').value = task.deadline;
-            document.getElementById('task-priority').value = task.priority;
-            deleteTask(index);
+        // タスクを完了済みにする関数
+        function completeTask(index) {
+            tasks[index].completed = true;
+            saveTasks();
+            renderTasks();
         }
 
+        // タスクをフィルタリングして表示
         function renderTasks() {
             const taskList = document.getElementById('task-list');
             taskList.innerHTML = '';
@@ -115,19 +118,19 @@
 
                 const taskElement = document.createElement('div');
                 taskElement.classList.add('task');
-                taskElement.setAttribute('draggable', true);
-                taskElement.addEventListener('dragstart', () => { draggedTaskIndex = index; });
-                taskElement.addEventListener('dragover', (event) => { event.preventDefault(); });
-                taskElement.addEventListener('drop', () => { moveTask(draggedTaskIndex, index); });
+                if (task.completed) {
+                    taskElement.classList.add('completed');
+                }
 
                 taskElement.innerHTML = `
                     <div>
-                        <h3 onclick="editTask(${index})">${task.name}</h3>
+                        <h3>${task.name}</h3>
                         <p>担当者: ${task.owner}</p>
                         <p>〆切: ${task.deadline}</p>
                         <p>優先度: <span class="priority">${task.priority}</span></p>
                     </div>
                     <div>
+                        <button class="complete" onclick="completeTask(${index})">完了</button>
                         <button onclick="deleteTask(${index})">削除</button>
                     </div>
                 `;
@@ -136,23 +139,13 @@
             });
         }
 
-        function moveTask(fromIndex, toIndex) {
-            const task = tasks.splice(fromIndex, 1)[0];
-            tasks.splice(toIndex, 0, task);
-            saveTasks();
-            renderTasks();
-        }
-
-        document.getElementById('filter-owner').addEventListener('change', renderTasks);
-        document.getElementById('filter-priority').addEventListener('change', renderTasks);
-
         document.getElementById('task-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const taskName = document.getElementById('task-name').value;
             const taskOwner = document.getElementById('task-owner').value;
             const taskDeadline = document.getElementById('task-deadline').value;
             const taskPriority = document.getElementById('task-priority').value;
-            const newTask = { name: taskName, owner: taskOwner, deadline: taskDeadline, priority: taskPriority };
+            const newTask = { name: taskName, owner: taskOwner, deadline: taskDeadline, priority: taskPriority, completed: false };
             addTask(newTask);
             document.getElementById('task-form').reset();
         });
