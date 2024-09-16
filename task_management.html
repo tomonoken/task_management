@@ -40,6 +40,7 @@
         .task h3 {
             margin: 0 0 5px;
             color: #333;
+            cursor: pointer;
         }
 
         .task p {
@@ -104,13 +105,32 @@
 <body>
     <h1>タスク管理</h1>
 
+    <!-- フィルター -->
+    <label for="filter-owner">担当者でフィルター:</label>
+    <select id="filter-owner">
+        <option value="">全員</option>
+        <option value="福山">福山</option>
+        <option value="西村">西村</option>
+        <option value="吉村">吉村</option>
+        <option value="今井">今井</option>
+        <option value="祁内">祁内</option>
+        <option value="友野">友野</option>
+    </select>
+
+    <label for="filter-priority">優先度でフィルター:</label>
+    <select id="filter-priority">
+        <option value="">すべて</option>
+        <option value="高">高</option>
+        <option value="中">中</option>
+        <option value="低">低</option>
+    </select>
+
     <!-- タスクを追加するフォーム -->
     <form id="task-form">
         <label for="task-name">タスク名:</label>
         <input type="text" id="task-name" placeholder="タスク名" required>
 
         <label for="task-owner">担当者:</label>
-        <!-- 担当者選択のドロップダウンメニュー -->
         <select id="task-owner" required>
             <option value="福山">福山</option>
             <option value="西村">西村</option>
@@ -120,7 +140,6 @@
             <option value="友野">友野</option>
         </select>
 
-        <!-- 〆切 (期限) の項目 -->
         <label for="task-deadline">〆切:</label>
         <input type="date" id="task-deadline" required>
 
@@ -139,33 +158,56 @@
     </div>
 
     <script>
-        // タスクリストを保持する配列
-        let tasks = [];
+        let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+        function saveTasks() {
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+        }
 
         // タスクを追加する関数
         function addTask(task) {
             tasks.push(task);
+            saveTasks();
             renderTasks();
         }
 
         // タスクを削除する関数
         function deleteTask(index) {
             tasks.splice(index, 1);
+            saveTasks();
             renderTasks();
         }
 
-        // タスクを表示する関数
+        // タスクを編集する関数
+        function editTask(index) {
+            const task = tasks[index];
+            document.getElementById('task-name').value = task.name;
+            document.getElementById('task-owner').value = task.owner;
+            document.getElementById('task-deadline').value = task.deadline;
+            document.getElementById('task-priority').value = task.priority;
+            deleteTask(index); // 一度削除してから再追加
+        }
+
+        // タスクをフィルタリングして表示
         function renderTasks() {
             const taskList = document.getElementById('task-list');
             taskList.innerHTML = ''; // リストをクリア
 
+            const filterOwner = document.getElementById('filter-owner').value;
+            const filterPriority = document.getElementById('filter-priority').value;
+
             tasks.forEach((task, index) => {
+                if ((filterOwner && task.owner !== filterOwner) ||
+                    (filterPriority && task.priority !== filterPriority)) {
+                    return;
+                }
+
                 const taskElement = document.createElement('div');
                 taskElement.classList.add('task');
 
                 taskElement.innerHTML = `
                     <div>
-                        <h3>${task.name}</h3>
+                        <h3 onclick="editTask(${index})">${task.name}</h3>
                         <p>担当者: ${task.owner}</p>
                         <p>〆切: ${task.deadline}</p>
                         <p>優先度: <span class="priority">${task.priority}</span></p>
@@ -176,8 +218,26 @@
                 `;
                 
                 taskList.appendChild(taskElement);
+
+                checkReminder(task.deadline, task.name);
             });
         }
+
+        // 〆切が近づいた場合のリマインダー
+        function checkReminder(deadline, taskName) {
+            const deadlineDate = new Date(deadline);
+            const currentDate = new Date();
+            const diffTime = deadlineDate - currentDate;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) {
+                alert(`タスク「${taskName}」の〆切が明日です！`);
+            }
+        }
+
+        // フィルターが変更されたときに再描画
+        document.getElementById('filter-owner').addEventListener('change', renderTasks);
+        document.getElementById('filter-priority').addEventListener('change', renderTasks);
 
         // フォームが送信されたときにタスクを追加する処理
         document.getElementById('task-form').addEventListener('submit', function(event) {
@@ -192,14 +252,4 @@
                 name: taskName,
                 owner: taskOwner,
                 deadline: taskDeadline,
-                priority: taskPriority
-            };
-
-            addTask(newTask);
-
-            // フォームをリセット
-            document.getElementById('task-form').reset();
-        });
-    </script>
-</body>
-</html>
+                priority
